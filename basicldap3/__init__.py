@@ -5,12 +5,19 @@ from ldap3 import Connection, Server, SUBTREE
 
 
 class Ldap:
-    def __init__(self, host: str, base_dn: str, ldap3_args: Any = {}):
+    def __init__(
+        self,
+        host: str,
+        base_dn: str,
+        login_attribute: str = "userPrincipalName",
+        ldap3_args: Any = {},
+    ):
         """ Creates an ldap3 Server Object that will be used for the authentication
 
         Args:
             host (string): The URL of the the LDAP server.
             base_dn (string): The base dn of the LDAP server (e.g. DC=example,DC=com).
+            login_attribut (string): Defines what attribute corresponds to the username. Defaults to 'userPrincipalName'
             ldap3_args (dict): Optional parameters that are used by the ldap3 Server function.
         
         Returns:
@@ -19,6 +26,7 @@ class Ldap:
 
         self.server = Server(host, **ldap3_args)
         self.base_dn = base_dn
+        self.login_attribute = login_attribute
         self.__authenticated = False
 
     def authenticate(
@@ -42,8 +50,9 @@ class Ldap:
             if member_of:
                 self.connection.search(
                     search_base=self.base_dn,
-                    search_filter="(&(mail={})(memberOf={}))".format(user, member_of),
-                    search_scope=SUBTREE,
+                    search_filter="(&({}={})(memberOf={}))".format(
+                        self.login_attribute, user, member_of
+                    ),
                 )
                 if self.connection.entries:
                     self.__authenticated = True
@@ -72,8 +81,7 @@ class Ldap:
         if self.__authenticated:
             self.connection.search(
                 search_base=self.base_dn,
-                search_filter="(mail={})".format(self.user),
-                search_scope=SUBTREE,
+                search_filter="({}={})".format(self.login_attribute, self.user),
                 attributes=attributes,
             )
 

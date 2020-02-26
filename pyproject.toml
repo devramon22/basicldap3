@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "basicldap3"
-version = "0.1.1"
+version = "0.1.2"
 description = "Provides basic authentication using the ldap3 library"
 authors = ["Ramon Brandt <devramon22@gmail.com>"]
 license = "MIT"
